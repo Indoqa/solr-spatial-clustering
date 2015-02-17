@@ -2,16 +2,58 @@
 
 This project offers a Distance-based spatial clustering search component for Apache Solr. 
 It addresses the problem of reducing the amount of displayed markers on a map, described as [Spatial Clustering](https://wiki.apache.org/solr/SpatialClustering), 
-using a [Distance-based](https://developers.google.com/maps/articles/toomanymarkers#distancebasedclustering) clustering algorithm.
+using a [Distance-based](https://developers.google.com/maps/articles/toomanymarkers#distancebasedclustering) [clustering algorithm](http://www.tomgibara.com/clustering/fast-spatial/).
 
 ## Requirements
 
   * Apache Solr 4.3+
-  
+  * Java 7+
   
 ## Build
 
-  *   
+  * Download the latest release
+  * run "maven clean install"
+  
+## Installation
 
+  * Copy the plugin jar from 'target/solr-spatialclustering-{version}.jar' into the /lib directory of your solr core.
+  * Copy all gvm dependency jars from 'target/lib/*.jar' into the /lib directory of your solr core.
+
+## Configuration
+
+### schema.xml
+
+To enable spatial clustering, store the geo information (longitude and latitude) in your solr document:
+
+```xml
+<field name="latitude" type="sdouble" indexed="true" stored="true" />
+<field name="longitude" type="sdouble" indexed="true" stored="true" />
+```
+
+### solrconfig.xml
+
+Define the search component and map field names for id, longitude and latitude:
+
+```xml
+<searchComponent class="com.indoqa.solr.spatialclustering.SpatialClusteringComponent" name="spatial-clustering">
+  <str name="fieldId">id</str>
+  <str name="fieldLon">longitude</str>
+  <str name="fieldLat">latitude</str>
+</searchComponent>
+```
+
+After that, add the spatial component to your request chain:
+
+```xml
+<requestHandler name="search" class="solr.SearchHandler" default="true">
+  <arr name="last-components">
+    <str>spatial-clustering</str>
+  </arr>
+</requestHandler>
+```
+
+
+
+ 
 
 

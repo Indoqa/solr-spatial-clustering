@@ -25,7 +25,7 @@
   
   <groupId>com.indoqa.solr</groupId>
   <artifactId>solr-spatialclustering</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.1-SNAPSHOT</version>
   
   <name>Solr Spatial Cluster Plugin</name>
   
@@ -38,6 +38,7 @@
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-core</artifactId>
       <version>${solr-version}</version>
+      <scope>provided</scope>
     </dependency>
     
     <dependency>
@@ -64,7 +65,30 @@
           <target>1.7</target>
         </configuration>
       </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>install</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+              <excludeScope>provided</excludeScope>
+              <excludeArtifactIds>junit</excludeArtifactIds>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
+  
+  <scm>
+    <connection>scm:git:git@github.com:Indoqa/solr-spatial-clustering.git</connection>
+    <developerConnection>scm:git:git@github.com:Indoqa/solr-spatial-clustering.git</developerConnection>
+    <url>https://github.com/Indoqa/solr-spatial-clustering</url>
+    <tag>HEAD</tag>
+  </scm>
   
 </project>
