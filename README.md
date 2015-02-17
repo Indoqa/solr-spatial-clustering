@@ -62,7 +62,7 @@ After that, add the spatial component to your query component chain:
 
 ### Query Parameters
 
- * spatial-clustering=true -> Enabled spatial clustering
+ * spatial-clustering=true -> Enables spatial clustering
  * spatial-clustering.size=20 -> Optionally sets the maximum amount of clusters (=pins)
 
 ### Result
