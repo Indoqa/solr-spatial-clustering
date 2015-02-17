@@ -2,19 +2,21 @@
 
 This project offers a Distance-based spatial clustering search component for Apache Solr. 
 It addresses the problem of reducing the amount of displayed markers on a map, described as [Spatial Clustering](https://wiki.apache.org/solr/SpatialClustering), 
-using a [Distance-based](https://developers.google.com/maps/articles/toomanymarkers#distancebasedclustering) [clustering algorithm](http://www.tomgibara.com/clustering/fast-spatial/).
+using a [Distance-based](https://developers.google.com/maps/articles/toomanymarkers#distancebasedclustering) clustering algorithm based on [GVM](http://www.tomgibara.com/clustering/fast-spatial/).
 
-## Requirements
+## Installation
+
+### Requirements
 
   * Apache Solr 4.3+
   * Java 7+
   
-## Build
+### Build
 
   * Download the latest release
   * run "maven clean install"
   
-## Installation
+### Deployment
 
   * Copy the plugin jar from 'target/solr-spatialclustering-{version}.jar' into the /lib directory of your solr core.
   * Copy all gvm dependency jars from 'target/lib/*.jar' into the /lib directory of your solr core.
@@ -42,7 +44,7 @@ Define the search component and map field names for id, longitude and latitude:
 </searchComponent>
 ```
 
-After that, add the spatial component to your request chain:
+After that, add the spatial component to your query component chain:
 
 ```xml
 <requestHandler name="search" class="solr.SearchHandler" default="true">
@@ -51,6 +53,12 @@ After that, add the spatial component to your request chain:
   </arr>
 </requestHandler>
 ```
+
+## Usage
+
+### Query Parameters
+
+To enable spatial-clustering, just add the request parameter *?spatial-clustering=true*. To optionally set the maximal amount of clusters (=pins), add *&spatial-clustering.size=<size>*.  
 
 
 
