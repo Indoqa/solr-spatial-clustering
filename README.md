@@ -43,7 +43,7 @@ To enable spatial clustering, store the geo information (longitude and latitude)
 Define the search component and map field names for id, longitude and latitude:
 
 ```xml
-<searchComponent class="com.indoqa.solr.spatialclustering.SpatialClusteringComponent" name="spatial-clustering">
+<searchComponent class="com.indoqa.solr.spatial.clustering.SpatialClusteringComponent" name="spatial-clustering">
   <str name="fieldId">id</str>
   <str name="fieldLon">longitude</str>
   <str name="fieldLat">latitude</str>

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.indoqa.solr.spatialclustering;
+package com.indoqa.solr.spatial.clustering;
 
 import java.io.IOException;
 import java.util.HashSet;
