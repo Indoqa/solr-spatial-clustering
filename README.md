@@ -3,7 +3,8 @@
 This project offers a Distance-based spatial clustering search component for Apache Solr. 
 It addresses the problem of reducing the amount of displayed markers on a map, described as [Spatial Clustering](https://wiki.apache.org/solr/SpatialClustering), 
 using a [Distance-based](https://developers.google.com/maps/articles/toomanymarkers#distancebasedclustering) clustering algorithm based on [GVM](http://www.tomgibara.com/clustering/fast-spatial/).
-``
+`
+`
 The search component aggregates all possible search results to a maximum amount of pins and adds this information to the standard search result representation. Like faceting, it can be used to query 
 for a paged result slice (eg. for a result list) and a geographic overview of ALL search result items (spatial clusters) at once. 
 
