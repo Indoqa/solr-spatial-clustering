@@ -137,11 +137,11 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
             String latitudeString = latitudeField.stringValue();
             String longitudeString = longitudeField.stringValue();
 
-            if (!isNumeric(latitudeString) || !isNumeric(longitudeString)) {
+            if (!this.isNumeric(latitudeString) || !this.isNumeric(longitudeString)) {
                 continue;
             }
 
-            clusters.add(1, new double[]{Double.valueOf(latitudeString), Double.valueOf(longitudeString)}, doc);
+            clusters.add(1, new double[] {Double.valueOf(latitudeString), Double.valueOf(longitudeString)}, doc);
         }
         return clusters;
     }

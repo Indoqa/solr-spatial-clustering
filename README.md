@@ -33,9 +33,13 @@ for a paged result slice (eg. for a result list) and a geographic overview of AL
 To enable spatial clustering, store the geo information (longitude and latitude) in your solr document:
 
 ```xml
+<fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" positionIncrementGap="0" />
+
 <field name="latitude" type="double" indexed="true" stored="true" />
 <field name="longitude" type="double" indexed="true" stored="true" />
 ```
+
+Note: For legacy support of old Solr 4 'SortableDoubleField', see branch 'legace/solr-4.3'
 
 ### solrconfig.xml
 
