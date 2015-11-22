@@ -14,7 +14,7 @@ for a paged result slice (eg. for a result list) and a geographic overview of AL
 
 ### Requirements
 
-  * Apache Solr 4.3+
+  * Apache Solr 5.2.1+
   * Java 7+
   
 ### Build
@@ -24,8 +24,7 @@ for a paged result slice (eg. for a result list) and a geographic overview of AL
   
 ### Deployment
 
-  * Copy the plugin jar from 'target/solr-spatialclustering-{version}.jar' into the /lib directory of your solr core.
-  * Copy all gvm dependency jars from 'target/lib/*.jar' into the /lib directory of your solr core.
+  * Copy the plugin jar from 'target/solr-spatialclustering-{version}-jar-with-dependencies.jar' into the /lib directory of your solr core.
 
 ## Configuration
 
@@ -34,8 +33,8 @@ for a paged result slice (eg. for a result list) and a geographic overview of AL
 To enable spatial clustering, store the geo information (longitude and latitude) in your solr document:
 
 ```xml
-<field name="latitude" type="sdouble" indexed="true" stored="true" />
-<field name="longitude" type="sdouble" indexed="true" stored="true" />
+<field name="latitude" type="double" indexed="true" stored="true" />
+<field name="longitude" type="double" indexed="true" stored="true" />
 ```
 
 ### solrconfig.xml
@@ -53,7 +52,7 @@ Define the search component and map field names for id, longitude and latitude:
 After that, add the spatial component to your query component chain:
 
 ```xml
-<requestHandler name="search" class="solr.SearchHandler" default="true">
+<requestHandler name="/search" class="solr.SearchHandler" default="true">
   <arr name="last-components">
     <str>spatial-clustering</str>
   </arr>

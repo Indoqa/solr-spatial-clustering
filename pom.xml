@@ -28,8 +28,16 @@
   <name>Solr Spatial Cluster Plugin</name>
   
   <properties>
-    <solr-version>4.3.1</solr-version>
+    <solr-version>5.2.1</solr-version>
   </properties>
+
+  <repositories>
+    <repository>
+      <id>tomgibara</id>
+      <name>Tomgibara</name>
+      <url>http://www.tomgibara.com/maven/repo/</url>
+    </repository>
+  </repositories>
   
   <dependencies>
     <dependency>
@@ -44,13 +52,7 @@
       <artifactId>cluster-gvm</artifactId>
       <version>1.1</version>
     </dependency>
-    
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.10</version>
-      <scope>test</scope>
-    </dependency>
+
   </dependencies>
   
   <build>
@@ -64,17 +66,19 @@
         </configuration>
       </plugin>
       <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4.1</version>
         <executions>
           <execution>
-            <phase>install</phase>
+            <id>distro-assembly</id>
+            <phase>package</phase>
             <goals>
-              <goal>copy-dependencies</goal>
+              <goal>single</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/lib</outputDirectory>
-              <excludeScope>provided</excludeScope>
-              <excludeArtifactIds>junit</excludeArtifactIds>
+              <descriptors>
+                <descriptor>dist-assembly.xml</descriptor>
+              </descriptors>
             </configuration>
           </execution>
         </executions>

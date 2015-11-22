@@ -20,6 +20,7 @@ package com.indoqa.solr.spatial.clustering;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
@@ -29,7 +30,6 @@ import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.search.DocIterator;
 import org.apache.solr.search.DocSet;
-import org.apache.solr.util.NumberUtils;
 import org.apache.solr.util.plugin.PluginInfoInitialized;
 
 import com.tomgibara.cluster.gvm.dbl.DblClusters;
@@ -134,21 +134,14 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
                 continue;
             }
 
-            String latitideString = latitudeField.stringValue();
+            String latitudeString = latitudeField.stringValue();
             String longitudeString = longitudeField.stringValue();
 
-            if (latitideString == null || longitudeString == null) {
+            if (!isNumeric(latitudeString) || !isNumeric(longitudeString)) {
                 continue;
             }
 
-            Double latitudeValue = Double.valueOf(NumberUtils.SortableStr2doubleStr(latitideString));
-            Double longitudeValue = Double.valueOf(NumberUtils.SortableStr2doubleStr(longitudeString));
-
-            if (latitudeValue == null || longitudeValue == null) {
-                continue;
-            }
-
-            clusters.add(1, new double[] {longitudeValue, latitudeValue}, doc);
+            clusters.add(1, new double[]{Double.valueOf(latitudeString), Double.valueOf(longitudeString)}, doc);
         }
         return clusters;
     }
@@ -195,5 +188,9 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
         }
 
         return PIN_TYPE_CLUSTER;
+    }
+
+    private boolean isNumeric(String s) {
+        return s != null && Pattern.matches("-?\\d+(\\.\\d+)?", s);
     }
 }
