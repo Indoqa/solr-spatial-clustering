@@ -39,7 +39,7 @@ To enable spatial clustering, store the geo information (longitude and latitude)
 <field name="longitude" type="double" indexed="true" stored="true" />
 ```
 
-Note: For legacy support of old Solr 4 'SortableDoubleField', see branch 'legace/solr-4.3'
+Note: For legacy support of old Solr 4 'SortableDoubleField', see branch 'legacy/solr-4.3'
 
 ### solrconfig.xml
 
