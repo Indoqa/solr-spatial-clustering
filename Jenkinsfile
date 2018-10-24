@@ -18,8 +18,14 @@ pipeline {
   
   agent any
 
+  parameters {
+      booleanParam(name: 'DEPLOY_ARTIFACTS', defaultValue: false, description: 'Deploy artifacts to nexus')
+      booleanParam(name: 'RUN_SONAR', defaultValue: false, description: 'Run sonar analysis')
+  }
+
   environment {
     MAVEN_BUILD_PROPERTIES=''
+    DEPLOY_BRANCH='master'
   }
 
   triggers {
@@ -55,7 +61,10 @@ pipeline {
 
     stage('Deploy to nexus') {
       when {
-        environment name: 'DEPLOY_ARTIFACTS', value: 'true'
+        allOf {
+          branch "${DEPLOY_BRANCH}"
+          environment name: 'DEPLOY_ARTIFACTS', value: 'true'
+        }
       }
       
       steps {
