@@ -37,12 +37,12 @@ import com.tomgibara.cluster.gvm.dbl.DblResult;
 
 public class SpatialClusteringComponent extends SearchComponent implements PluginInfoInitialized {
 
+    public static final String PARAM_SPATIALCLUSTERING = "spatial-clustering";
+    public static final String PARAM_SPATIALCLUSTERING_SIZE = PARAM_SPATIALCLUSTERING + ".size";
+
     private static final String FIELD_NAME_ID = "fieldId";
     private static final String FIELD_NAME_LON = "fieldLon";
     private static final String FIELD_NAME_LAT = "fieldLat";
-
-    private static final String PARAM_SPATIALCLUSTERING = "spatial-clustering";
-    private static final String PARAM_SPATIALCLUSTERING_SIZE = "spatial-clustering.size";
 
     private static final int DEFAULT_CLUSTER_SIZE = 10;
 
@@ -56,16 +56,6 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
     @Override
     public String getDescription() {
         return "indoqa-spatial-clustering";
-    }
-
-    @Override
-    public String getSource() {
-        return "indoqa-spatial-clustering";
-    }
-
-    @Override
-    public String getVersion() {
-        return "1";
     }
 
     @Override
@@ -114,6 +104,7 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
 
             spatialClusteringRoot.add("pin", clusterNode);
         }
+
         return spatialClusteringRoot;
     }
 
@@ -143,6 +134,7 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
 
             clusters.add(1, new double[] {Double.valueOf(latitudeString), Double.valueOf(longitudeString)}, doc);
         }
+
         return clusters;
     }
 
