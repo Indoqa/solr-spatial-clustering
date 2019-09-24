@@ -85,6 +85,8 @@
     <str name="fieldId">id</str>
     <str name="fieldLon">lon</str>
     <str name="fieldLat">lat</str>
+
+    <int name="maxSize">10000</int>
   </searchComponent>
 
   <requestHandler name="/select" class="solr.SearchHandler">

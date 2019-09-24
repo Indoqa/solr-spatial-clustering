@@ -62,6 +62,35 @@ public class ClusteringTest {
         return result;
     }
 
+    @Test
+    public void belowMinResultCount() throws Exception {
+        SolrQuery query = new SolrQuery("*:*");
+        query.setRows(ROWS);
+        query.set(PARAMETER_SPATIALCLUSTERING, true);
+        query.set(PARAMETER_SIZE, TOTAL_DOC_COUNT);
+        query.set(PARAMETER_MIN_RESULT_COUNT, TOTAL_DOC_COUNT + 1);
+
+        QueryResponse response = infrastructureRule.getSolrClient().query(query);
+        assertNull(response.getResponse().get("spatial-clustering"));
+    }
+
+    @Test
+    public void belowMinSize() throws Exception {
+        SolrQuery query = new SolrQuery("*:*");
+        query.setRows(ROWS);
+        query.set(PARAMETER_SPATIALCLUSTERING, true);
+        query.set(PARAMETER_SIZE, 0);
+
+        try {
+            infrastructureRule.getSolrClient().query(query);
+        } catch (SolrServerException e) {
+            Throwable rootCause = e.getRootCause();
+
+            assertTrue(rootCause instanceof IllegalArgumentException);
+            assertEquals("The requested size must be at least 1.", rootCause.getMessage());
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     public void clustering() throws IOException, SolrServerException {
@@ -104,7 +133,7 @@ public class ClusteringTest {
 
             assertTrue(rootCause instanceof IllegalArgumentException);
             assertEquals(
-                "The requested size is larger than 1000000. Consider changing maxSize in the plugin configuration.",
+                "The requested size is larger than 10000. Consider changing maxSize in the plugin configuration.",
                 rootCause.getMessage());
         }
     }

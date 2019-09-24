@@ -170,7 +170,7 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
         }
 
         if (size < MIN_SIZE) {
-            throw new IllegalArgumentException("The requested size must be at least " + MIN_SIZE);
+            throw new IllegalArgumentException("The requested size must be at least " + MIN_SIZE + ".");
         }
 
         DblClusters<String> clusters = this.createClusters(responseBuilder, size);
