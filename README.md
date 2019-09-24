@@ -14,7 +14,7 @@ The search component aggregates all possible search results to a maximum amount 
 ### Requirements
 
   * Apache Solr 7.5.0+
-  * Java 7+
+  * Java 8+
   
 ### Build
 
@@ -50,7 +50,7 @@ Define the search component and map field names for id, longitude and latitude, 
   <str name="fieldLon">longitude</str>
   <str name="fieldLat">latitude</str>
 
-  <int name="maxSize">1000000</int>int>
+  <int name="maxSize">1000000</int>
 </searchComponent>
 ```
 
