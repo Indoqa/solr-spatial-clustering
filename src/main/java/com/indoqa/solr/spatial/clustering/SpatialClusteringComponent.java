@@ -19,8 +19,8 @@ package com.indoqa.solr.spatial.clustering;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
@@ -28,8 +28,6 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.PluginInfo;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
-import org.apache.solr.search.DocIterator;
-import org.apache.solr.search.DocSet;
 import org.apache.solr.util.plugin.PluginInfoInitialized;
 
 import com.tomgibara.cluster.gvm.dbl.DblClusters;
@@ -37,14 +35,18 @@ import com.tomgibara.cluster.gvm.dbl.DblResult;
 
 public class SpatialClusteringComponent extends SearchComponent implements PluginInfoInitialized {
 
-    public static final String PARAM_SPATIALCLUSTERING = "spatial-clustering";
-    public static final String PARAM_SPATIALCLUSTERING_SIZE = PARAM_SPATIALCLUSTERING + ".size";
+    public static final String PARAMETER_SPATIALCLUSTERING = "spatial-clustering";
+    public static final String PARAMETER_SIZE = PARAMETER_SPATIALCLUSTERING + ".size";
+    public static final String PARAMETER_MIN_RESULT_COUNT = PARAMETER_SPATIALCLUSTERING + ".min-result-count";
 
-    private static final String FIELD_NAME_ID = "fieldId";
-    private static final String FIELD_NAME_LON = "fieldLon";
-    private static final String FIELD_NAME_LAT = "fieldLat";
+    private static final String PARAMETER_FIELD_NAME_ID = "fieldId";
+    private static final String PARAMETER_FIELD_NAME_LON = "fieldLon";
+    private static final String PARAMETER_FIELD_NAME_LAT = "fieldLat";
+    private static final String PARAMETER_MAX_SIZE = "maxSize";
 
-    private static final int DEFAULT_CLUSTER_SIZE = 10;
+    private static final int DEFAULT_SIZE = 10;
+    private static final int DEFAULT_MAX_SIZE = 1_000_000;
+    private static final int MIN_SIZE = 1;
 
     private static final String PIN_TYPE_SINGLE = "single";
     private static final String PIN_TYPE_CLUSTER = "cluster";
@@ -53,120 +55,55 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
     private String fieldNameLon;
     private String fieldNameLat;
 
-    @Override
-    public String getDescription() {
-        return "indoqa-spatial-clustering";
-    }
+    private int maxSize;
 
-    @Override
-    public void init(PluginInfo info) {
-        this.fieldNameId = this.getStringArgument(info.initArgs, FIELD_NAME_ID);
-        this.fieldNameLon = this.getStringArgument(info.initArgs, FIELD_NAME_LON);
-        this.fieldNameLat = this.getStringArgument(info.initArgs, FIELD_NAME_LAT);
-    }
+    private Set<String> fields;
 
-    @Override
-    public void prepare(ResponseBuilder rb) throws IOException {
-        if (rb.req.getParams().getBool(PARAM_SPATIALCLUSTERING, false)) {
-            rb.setNeedDocSet(true);
-        }
-    }
-
-    @Override
-    public void process(ResponseBuilder responseBuilder) throws IOException {
-        if (!responseBuilder.req.getParams().getBool(PARAM_SPATIALCLUSTERING, false)) {
-            return;
-        }
-
-        int maxCount = responseBuilder.req.getParams().getInt(PARAM_SPATIALCLUSTERING_SIZE, DEFAULT_CLUSTER_SIZE);
-        Set<String> fields = this.createFieldList();
-
-        DblClusters<Document> clusters = this.createDocumentClusters(responseBuilder, maxCount, fields);
-        NamedList<Object> spatialClusteringRoot = this.createClusterResult(clusters);
-
-        responseBuilder.rsp.add("spatial-clustering", spatialClusteringRoot);
-    }
-
-    private NamedList<Object> createClusterResult(DblClusters<Document> clusters) {
-        NamedList<Object> spatialClusteringRoot = new NamedList<>();
-
-        for (DblResult<Document> cluster : clusters.results()) {
-            NamedList<Object> clusterNode = new NamedList<>();
-
-            clusterNode.add("type", this.getType(cluster.getCount()));
-            clusterNode.add("size", cluster.getCount());
-            clusterNode.add("longitude", cluster.getCoords()[0]);
-            clusterNode.add("latitude", cluster.getCoords()[1]);
-
-            if (cluster.getCount() == 1) {
-                clusterNode.add("reference", this.getFieldString(cluster, this.fieldNameId));
-            }
-
-            spatialClusteringRoot.add("pin", clusterNode);
-        }
-
-        return spatialClusteringRoot;
-    }
-
-    private DblClusters<Document> createDocumentClusters(ResponseBuilder rb, int maxCount, Set<String> fields) throws IOException {
-        DblClusters<Document> clusters = new DblClusters<>(2, maxCount);
-
-        DocSet docSet = rb.getResults().docSet;
-        DocIterator iterator = docSet.iterator();
-
-        while (iterator.hasNext()) {
-            Integer docId = iterator.next();
-            Document doc = rb.req.getSearcher().doc(docId, fields);
-
-            IndexableField latitudeField = doc.getField(this.fieldNameLat);
-            IndexableField longitudeField = doc.getField(this.fieldNameLon);
-
-            if (latitudeField == null || longitudeField == null) {
-                continue;
-            }
-
-            String latitudeString = latitudeField.stringValue();
-            String longitudeString = longitudeField.stringValue();
-
-            if (!this.isNumeric(latitudeString) || !this.isNumeric(longitudeString)) {
-                continue;
-            }
-
-            clusters.add(1, new double[] {Double.valueOf(latitudeString), Double.valueOf(longitudeString)}, doc);
-        }
-
-        return clusters;
-    }
-
-    private Set<String> createFieldList() {
-        Set<String> fields = new HashSet<>();
-
-        fields.add(this.fieldNameId);
-        fields.add(this.fieldNameLon);
-        fields.add(this.fieldNameLat);
-
-        return fields;
-    }
-
-    private String getFieldString(DblResult<Document> dblResult, String name) {
-        IndexableField fieldable = dblResult.getKey().getField(name);
-
-        if (fieldable == null) {
+    private static Number getFieldNumber(Document document, String name) {
+        IndexableField field = document.getField(name);
+        if (field == null) {
             return null;
         }
 
-        return fieldable.stringValue();
+        return field.numericValue();
     }
 
-    private String getStringArgument(NamedList<?> values, String fieldName) {
-        Object value = values.get(fieldName);
+    private static String getFieldString(Document document, String name) {
+        IndexableField field = document.getField(name);
+        if (field == null) {
+            return null;
+        }
 
+        return field.stringValue();
+    }
+
+    private static int getIntArgument(NamedList<?> values, String name, int minValue, int defaultValue) {
+        Object value = values.get(name);
+        if (value == null) {
+            return defaultValue;
+        }
+
+        if (!(value instanceof Number)) {
+            throw new IllegalArgumentException("Value for parameter '" + name + "' must be a number.");
+        }
+
+        int result = ((Number) value).intValue();
+        if (result < minValue) {
+            throw new IllegalArgumentException(
+                "Value for parameter '" + name + "' must be at least " + minValue + ", but it was " + result + ".");
+        }
+
+        return result;
+
+    }
+
+    private static String getStringArgument(NamedList<?> values, String fieldName) {
+        Object value = values.get(fieldName);
         if (value == null) {
             throw new IllegalStateException("No value for parameter '" + fieldName + "' specified in solrconfig.xml!");
         }
 
         String result = String.valueOf(value);
-
         if (result.trim().length() == 0) {
             throw new IllegalStateException("Value for parameter '" + fieldName + "' specified in solrconfig.xml was empty!");
         }
@@ -174,7 +111,7 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
         return result;
     }
 
-    private Object getType(int count) {
+    private static String getType(int count) {
         if (count == 1) {
             return PIN_TYPE_SINGLE;
         }
@@ -182,7 +119,106 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
         return PIN_TYPE_CLUSTER;
     }
 
-    private boolean isNumeric(String s) {
-        return s != null && Pattern.matches("-?\\d+(\\.\\d+)?", s);
+    private static boolean isEnabled(ResponseBuilder responseBuilder) {
+        return responseBuilder.req.getParams().getBool(PARAMETER_SPATIALCLUSTERING, false);
+    }
+
+    @Override
+    public String getDescription() {
+        return "indoqa-spatial-clustering";
+    }
+
+    @Override
+    public void init(PluginInfo info) {
+        this.fieldNameId = getStringArgument(info.initArgs, PARAMETER_FIELD_NAME_ID);
+        this.fieldNameLon = getStringArgument(info.initArgs, PARAMETER_FIELD_NAME_LON);
+        this.fieldNameLat = getStringArgument(info.initArgs, PARAMETER_FIELD_NAME_LAT);
+
+        this.fields = new HashSet<>();
+        this.fields.add(this.fieldNameId);
+        this.fields.add(this.fieldNameLon);
+        this.fields.add(this.fieldNameLat);
+
+        this.maxSize = getIntArgument(info.initArgs, PARAMETER_MAX_SIZE, MIN_SIZE, DEFAULT_MAX_SIZE);
+    }
+
+    @Override
+    public void prepare(ResponseBuilder responseBuilder) throws IOException {
+        if (!isEnabled(responseBuilder)) {
+            return;
+        }
+
+        responseBuilder.setNeedDocSet(true);
+    }
+
+    @Override
+    public void process(ResponseBuilder responseBuilder) throws IOException {
+        if (!isEnabled(responseBuilder)) {
+            return;
+        }
+
+        int minResultCount = responseBuilder.req.getParams().getInt(PARAMETER_MIN_RESULT_COUNT, 1);
+        if (responseBuilder.getResults().docSet.size() < minResultCount) {
+            return;
+        }
+
+        int size = responseBuilder.req.getParams().getInt(PARAMETER_SIZE, DEFAULT_SIZE);
+        if (size > this.maxSize) {
+            throw new IllegalArgumentException(
+                "The requested size is larger than " + this.maxSize + ". Consider changing " + PARAMETER_MAX_SIZE
+                    + " in the plugin configuration.");
+        }
+
+        if (size < MIN_SIZE) {
+            throw new IllegalArgumentException("The requested size must be at least " + MIN_SIZE);
+        }
+
+        DblClusters<String> clusters = this.createClusters(responseBuilder, size);
+        NamedList<Object> spatialClusteringRoot = this.createClusterResult(clusters);
+
+        responseBuilder.rsp.add("spatial-clustering", spatialClusteringRoot);
+    }
+
+    private NamedList<Object> createClusterResult(DblClusters<String> clusters) {
+        NamedList<Object> result = new NamedList<>();
+
+        for (DblResult<String> cluster : clusters.results()) {
+            NamedList<Object> clusterNode = new NamedList<>();
+
+            clusterNode.add("type", getType(cluster.getCount()));
+            clusterNode.add("size", cluster.getCount());
+            clusterNode.add("longitude", cluster.getCoords()[0]);
+            clusterNode.add("latitude", cluster.getCoords()[1]);
+
+            if (cluster.getCount() == 1) {
+                clusterNode.add("reference", cluster.getKey());
+            }
+
+            result.add("pin", clusterNode);
+        }
+
+        return result;
+    }
+
+    private DblClusters<String> createClusters(ResponseBuilder responseBuilder, int size) throws IOException {
+        DblClusters<String> result = new DblClusters<>(2, size);
+
+        for (Iterator<Integer> iterator = responseBuilder.getResults().docSet.iterator(); iterator.hasNext();) {
+            Document doc = responseBuilder.req.getSearcher().doc(iterator.next(), this.fields);
+
+            Number latitude = getFieldNumber(doc, this.fieldNameLat);
+            if (latitude == null) {
+                continue;
+            }
+
+            Number longitude = getFieldNumber(doc, this.fieldNameLon);
+            if (longitude == null) {
+                continue;
+            }
+
+            result.add(1, new double[] {latitude.doubleValue(), longitude.doubleValue()}, getFieldString(doc, this.fieldNameId));
+        }
+
+        return result;
     }
 }

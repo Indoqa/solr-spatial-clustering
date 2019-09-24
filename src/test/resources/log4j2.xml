@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO" debug="true">
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{ISO8601} [%t] %-5level %logger{1.} - %msg%n" />
+    </Console>
+
+    <RollingFile name="File" fileName="./target/unit-test.log" filePattern="./target/unit-test-%d{yyyy-MM-dd}-%i.log">
+      <PatternLayout pattern="%d{ISO8601} [%t] %-5level %logger - %msg%n" />
+      <Policies>
+        <OnStartupTriggeringPolicy />
+        <SizeBasedTriggeringPolicy size="10 MB" />
+      </Policies>
+    </RollingFile>
+  </Appenders>
+
+  <Loggers>
+    <Logger name="org.apache" level="WARN" />
+    <Root level="info">
+      <AppenderRef ref="Console" />
+      <AppenderRef ref="File" />
+    </Root>
+  </Loggers>
+</Configuration>

@@ -4,6 +4,7 @@ import static com.indoqa.solr.spatial.clustering.SpatialClusteringComponent.*;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -25,8 +26,12 @@ public class ClusteringTest {
     @ClassRule
     public static EmbeddedSolrInfrastructureRule infrastructureRule = new EmbeddedSolrInfrastructureRule();
 
+    private static final int ROWS = 0;
+
     @BeforeClass
     public static void setup() throws SolrServerException, IOException {
+        infrastructureRule.getSolrClient().deleteByQuery("*:*");
+
         for (int i = 0; i < TOTAL_DOC_COUNT; i++) {
             SolrInputDocument solrDocument = new SolrInputDocument();
             solrDocument.addField(SOLR_FIELD_ID, String.valueOf(i + 1));
@@ -46,26 +51,42 @@ public class ClusteringTest {
         return 9 + Math.random() * 8;
     }
 
+    private static int getTotalSize(NamedList<NamedList<?>> clusters) {
+        int result = 0;
+
+        List<NamedList<?>> pins = clusters.getAll("pin");
+        for (NamedList<?> eachPin : pins) {
+            result += ((Number) eachPin.get("size")).intValue();
+        }
+
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
     @Test
     public void clustering() throws IOException, SolrServerException {
         SolrQuery query = new SolrQuery("*:*");
-        query.setRows(Integer.MAX_VALUE);
-        query.set(PARAM_SPATIALCLUSTERING, true);
+        query.setRows(ROWS);
+        query.set(PARAMETER_SPATIALCLUSTERING, true);
 
         for (int i = 10; i < 100; i++) {
-            query.set(PARAM_SPATIALCLUSTERING_SIZE, i);
+            query.set(PARAMETER_SIZE, i);
 
             QueryResponse response = infrastructureRule.getSolrClient().query(query);
 
             assertEquals(TOTAL_DOC_COUNT, response.getResults().getNumFound());
-            assertEquals(TOTAL_DOC_COUNT, response.getResults().size());
-            assertEquals(Math.min(i, TOTAL_DOC_COUNT), ((NamedList<?>) response.getResponse().get("spatial-clustering")).size());
+            assertEquals(ROWS, response.getResults().size());
+
+            NamedList<NamedList<?>> clusters = (NamedList<NamedList<?>>) response.getResponse().get("spatial-clustering");
+
+            assertEquals(Math.min(i, TOTAL_DOC_COUNT), clusters.size());
+            assertEquals(TOTAL_DOC_COUNT, getTotalSize(clusters));
         }
 
-        query.set(PARAM_SPATIALCLUSTERING_SIZE, TOTAL_DOC_COUNT);
+        query.set(PARAMETER_SIZE, TOTAL_DOC_COUNT);
         assertEquals(TOTAL_DOC_COUNT, this.getClustering(infrastructureRule.getSolrClient().query(query)).size());
 
-        query.set(PARAM_SPATIALCLUSTERING_SIZE, 2 * TOTAL_DOC_COUNT);
+        query.set(PARAMETER_SIZE, 2 * TOTAL_DOC_COUNT);
         assertEquals(TOTAL_DOC_COUNT, this.getClustering(infrastructureRule.getSolrClient().query(query)).size());
     }
 
