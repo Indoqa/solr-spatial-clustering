@@ -13,7 +13,7 @@ The search component aggregates all possible search results to a maximum amount 
 
 ### Requirements
 
-  * Apache Solr 5.2.1+
+  * Apache Solr 7.5.0+
   * Java 7+
   
 ### Build
@@ -32,23 +32,25 @@ The search component aggregates all possible search results to a maximum amount 
 To enable spatial clustering, store the geo information (longitude and latitude) in your solr document:
 
 ```xml
-<fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" positionIncrementGap="0" />
+<fieldType name="pdouble" class="solr.DoublePointField" />
 
-<field name="latitude" type="double" indexed="true" stored="true" />
-<field name="longitude" type="double" indexed="true" stored="true" />
+<field name="latitude" type="pdouble" indexed="true" stored="true" />
+<field name="longitude" type="pdouble" indexed="true" stored="true" />
 ```
 
 Note: For legacy support of old Solr 4 'SortableDoubleField', see branch 'legacy/solr-4.3'
 
 ### solrconfig.xml
 
-Define the search component and map field names for id, longitude and latitude:
+Define the search component and map field names for id, longitude and latitude, as well as the maximum allowed number of clusters:
 
 ```xml
 <searchComponent class="com.indoqa.solr.spatial.clustering.SpatialClusteringComponent" name="spatial-clustering">
   <str name="fieldId">id</str>
   <str name="fieldLon">longitude</str>
   <str name="fieldLat">latitude</str>
+
+  <int name="maxSize">1000000</int>int>
 </searchComponent>
 ```
 
@@ -67,7 +69,8 @@ After that, add the spatial component to your query component chain:
 ### Query Parameters
 
  * spatial-clustering=true -> Enables spatial clustering
- * spatial-clustering.size=20 -> Optionally sets the maximum amount of clusters (=pins)
+ * spatial-clustering.size=20 -> Optionally sets the maximum number of clusters (=pins)
+ * spatial-clustering.min-result-count=100 -> Optionally sets the minimum number of documents required to do clustering
 
 ### Result
 

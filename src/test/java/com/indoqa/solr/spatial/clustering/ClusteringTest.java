@@ -1,7 +1,7 @@
 package com.indoqa.solr.spatial.clustering;
 
 import static com.indoqa.solr.spatial.clustering.SpatialClusteringComponent.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -88,6 +88,25 @@ public class ClusteringTest {
 
         query.set(PARAMETER_SIZE, 2 * TOTAL_DOC_COUNT);
         assertEquals(TOTAL_DOC_COUNT, this.getClustering(infrastructureRule.getSolrClient().query(query)).size());
+    }
+
+    @Test
+    public void exceedMaxSize() throws Exception {
+        SolrQuery query = new SolrQuery("*:*");
+        query.setRows(ROWS);
+        query.set(PARAMETER_SPATIALCLUSTERING, true);
+        query.set(PARAMETER_SIZE, Integer.MAX_VALUE);
+
+        try {
+            infrastructureRule.getSolrClient().query(query);
+        } catch (SolrServerException e) {
+            Throwable rootCause = e.getRootCause();
+
+            assertTrue(rootCause instanceof IllegalArgumentException);
+            assertEquals(
+                "The requested size is larger than 1000000. Consider changing maxSize in the plugin configuration.",
+                rootCause.getMessage());
+        }
     }
 
     private NamedList<?> getClustering(QueryResponse response) {
