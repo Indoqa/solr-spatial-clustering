@@ -1,5 +1,3 @@
-package com.indoqa.solr.spatial.clustering;
-
 /*
  * Licensed to the Indoqa Software Design und Beratung GmbH (Indoqa) under
  * one or more contributor license agreements. See the NOTICE file distributed
@@ -16,6 +14,7 @@ package com.indoqa.solr.spatial.clustering;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.indoqa.solr.spatial.clustering;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;

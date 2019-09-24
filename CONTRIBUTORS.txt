@@ -1,3 +1,4 @@
 This is a list that contains all people who have contributed to the project:
  
 Matthias Epheser, matthias.epheser[1at1]indoqa.com
+Steven Dolg, steven.dolg[1at1]indoqa.com
