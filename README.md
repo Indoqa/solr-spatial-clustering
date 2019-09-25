@@ -9,21 +9,9 @@ The search component aggregates all possible search results to a maximum amount 
 
 ![Spatial Clustering](https://raw.githubusercontent.com/Indoqa/solr-spatial-clustering/master/spatial_clustering.png)
 
-## Build
+## Installation
 
-### Requirements
-
-  * Apache Solr 7.5.0+
-  * Java 8+
-  
-### Build
-
-  * Download the latest release
-  * run `maven clean install`
-  
-## Deployment
-
-  * Download the plugin jar from http://repo1.maven.org/maven2/com/indoqa/solr/spatial-clustering/7.5.0/spatial-clustering-7.5.0-jar-with-dependencies.jar and copy it into the /lib directory of your solr core.
+Download the plugin jar from http://repo1.maven.org/maven2/com/indoqa/solr/spatial-clustering/7.5.0/spatial-clustering-7.5.0-jar-with-dependencies.jar and copy it into the `/lib` directory of your solr core.
 
 ## Configuration
 
@@ -38,7 +26,7 @@ To enable spatial clustering, store the geo information (longitude and latitude)
 <field name="longitude" type="pdouble" indexed="true" stored="true" />
 ```
 
-Note: For legacy support of old Solr 4 'SortableDoubleField', see branch 'legacy/solr-4.3'
+Note: For legacy support of old Solr 4 `SortableDoubleField`, see branch `legacy/solr-4.3`
 
 ### solrconfig.xml
 
@@ -77,8 +65,8 @@ After that, add the spatial component to your query component chain:
 Similar to facets, the computed clusters are added to the search result after the requested documents. There are two types of
 result pins:
 
-  * "single": Represents a single document, including the id of the referenced document.
-  * "cluster": Represents an aggregated pin covering more than one document, including the cluster size.  
+  * `single`: Represents a single document, including the id of the referenced document.
+  * `cluster`: Represents an aggregated pin covering more than one document, including the cluster size.  
   
 
 ```xml
@@ -100,3 +88,15 @@ result pins:
   ...
 </lst>
 ```
+
+## Build
+
+### Requirements
+
+  * Apache Solr 7.5.0+
+  * Java 8+
+  
+### Build
+
+  * Download the latest release
+  * run `maven clean install`
