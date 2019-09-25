@@ -23,7 +23,7 @@ The search component aggregates all possible search results to a maximum amount 
   
 ### Deployment
 
-  * Copy the plugin jar from 'target/solr-spatialclustering-{version}-jar-with-dependencies.jar' into the /lib directory of your solr core.
+  * Download the plugin jar from http://repo1.maven.org/maven2/com/indoqa/solr/spatial-clustering/7.5.0/spatial-clustering-7.5.0-jar-with-dependencies.jar and copy it into the /lib directory of your solr core.
 
 ## Configuration
 
@@ -68,9 +68,9 @@ After that, add the spatial component to your query component chain:
 
 ### Query Parameters
 
- * spatial-clustering=true -> Enables spatial clustering
- * spatial-clustering.size=20 -> Optionally sets the maximum number of clusters (=pins)
- * spatial-clustering.min-result-count=100 -> Optionally sets the minimum number of documents required to do clustering
+ * `spatial-clustering=true` -> Enables spatial clustering
+ * `spatial-clustering.size=20` -> Optionally sets the maximum number of clusters (=pins)
+ * `spatial-clustering.min-result-count=100` -> Optionally sets the minimum number of documents required to do clustering
 
 ### Result
 
