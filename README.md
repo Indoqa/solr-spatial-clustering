@@ -9,7 +9,7 @@ The search component aggregates all possible search results to a maximum amount 
 
 ![Spatial Clustering](https://raw.githubusercontent.com/Indoqa/solr-spatial-clustering/master/spatial_clustering.png)
 
-## Installation
+## Build
 
 ### Requirements
 
@@ -19,9 +19,9 @@ The search component aggregates all possible search results to a maximum amount 
 ### Build
 
   * Download the latest release
-  * run "maven clean install"
+  * run `maven clean install`
   
-### Deployment
+## Deployment
 
   * Download the plugin jar from http://repo1.maven.org/maven2/com/indoqa/solr/spatial-clustering/7.5.0/spatial-clustering-7.5.0-jar-with-dependencies.jar and copy it into the /lib directory of your solr core.
 
