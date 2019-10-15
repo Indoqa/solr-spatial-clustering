@@ -1,4 +1,5 @@
 /*
+
  * Licensed to the Indoqa Software Design und Beratung GmbH (Indoqa) under
  * one or more contributor license agreements. See the NOTICE file distributed
  * with this work for additional information regarding copyright ownership.
@@ -25,6 +26,7 @@ import java.util.List;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.util.NamedList;
 import org.junit.BeforeClass;
@@ -133,6 +135,34 @@ public class ClusteringTest {
 
         query.set(PARAMETER_SIZE, 2 * TOTAL_DOC_COUNT);
         assertEquals(TOTAL_DOC_COUNT, this.getClustering(infrastructureRule.getSolrClient().query(query)).size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void coordinates() throws SolrServerException, IOException {
+        String id = "1";
+
+        SolrQuery query = new SolrQuery("id:" + id);
+        query.set(PARAMETER_SPATIALCLUSTERING, true);
+        query.setRows(1);
+
+        QueryResponse response = infrastructureRule.getSolrClient().query(query);
+
+        assertEquals(response.getResults().getNumFound(), 1);
+        assertEquals(response.getResults().size(), 1);
+
+        SolrDocument document = response.getResults().get(0);
+        assertEquals(document.get("id"), id);
+
+        NamedList<NamedList<?>> clusters = (NamedList<NamedList<?>>) response.getResponse().get("spatial-clustering");
+        assertEquals(1, clusters.size());
+
+        NamedList<?> pin = clusters.get("pin");
+        assertNotNull(pin);
+
+        assertEquals(pin.get("reference"), id);
+        assertEquals(pin.get("longitude"), document.get("lon"));
+        assertEquals(pin.get("latitude"), document.get("lat"));
     }
 
     @Test

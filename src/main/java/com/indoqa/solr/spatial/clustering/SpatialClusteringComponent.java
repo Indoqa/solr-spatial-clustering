@@ -216,7 +216,7 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
                 continue;
             }
 
-            result.add(1, new double[] {latitude.doubleValue(), longitude.doubleValue()}, getFieldString(doc, this.fieldNameId));
+            result.add(1, new double[] {longitude.doubleValue(), latitude.doubleValue()}, getFieldString(doc, this.fieldNameId));
         }
 
         return result;
