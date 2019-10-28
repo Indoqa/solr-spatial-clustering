@@ -1,5 +1,4 @@
 /*
-
  * Licensed to the Indoqa Software Design und Beratung GmbH (Indoqa) under
  * one or more contributor license agreements. See the NOTICE file distributed
  * with this work for additional information regarding copyright ownership.
@@ -22,6 +21,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -72,9 +72,8 @@ public class ClusteringTest {
     private static int getTotalSize(NamedList<NamedList<?>> clusters) {
         int result = 0;
 
-        List<NamedList<?>> pins = clusters.getAll("pin");
-        for (NamedList<?> eachPin : pins) {
-            result += ((Number) eachPin.get("size")).intValue();
+        for (NamedList<?> eachCluster : clusters.getAll("pin")) {
+            result += ((Number) eachCluster.get("size")).intValue();
         }
 
         return result;
@@ -89,7 +88,7 @@ public class ClusteringTest {
         query.set(PARAMETER_MIN_RESULT_COUNT, TOTAL_DOC_COUNT + 1);
 
         QueryResponse response = infrastructureRule.getSolrClient().query(query);
-        assertNull(response.getResponse().get("spatial-clustering"));
+        assertNull(this.getClusteringCompact(response));
     }
 
     @Test
@@ -109,7 +108,6 @@ public class ClusteringTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void clustering() throws IOException, SolrServerException {
         SolrQuery query = new SolrQuery("*:*");
@@ -124,7 +122,7 @@ public class ClusteringTest {
             assertEquals(TOTAL_DOC_COUNT, response.getResults().getNumFound());
             assertEquals(ROWS, response.getResults().size());
 
-            NamedList<NamedList<?>> clusters = (NamedList<NamedList<?>>) response.getResponse().get("spatial-clustering");
+            NamedList<NamedList<?>> clusters = this.getClustering(response);
 
             assertEquals(Math.min(i, TOTAL_DOC_COUNT), clusters.size());
             assertEquals(TOTAL_DOC_COUNT, getTotalSize(clusters));
@@ -138,7 +136,34 @@ public class ClusteringTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    public void compactFormat() throws SolrServerException, IOException {
+        String id = "1";
+
+        SolrQuery query = new SolrQuery("id:" + id);
+        query.set(PARAMETER_SPATIALCLUSTERING, true);
+        query.set(PARAMETER_COMPACT_FORMAT, true);
+        query.setRows(1);
+
+        QueryResponse response = infrastructureRule.getSolrClient().query(query);
+
+        assertEquals(response.getResults().getNumFound(), 1);
+        assertEquals(response.getResults().size(), 1);
+
+        SolrDocument document = response.getResults().get(0);
+        assertEquals(document.get("id"), id);
+
+        List<Map<String, ?>> clusters = this.getClusteringCompact(response);
+        assertEquals(1, clusters.size());
+
+        Map<String, ?> cluster = clusters.get(0);
+        assertNotNull(cluster);
+
+        assertEquals(cluster.get("reference"), id);
+        assertEquals(cluster.get("longitude"), document.get("lon"));
+        assertEquals(cluster.get("latitude"), document.get("lat"));
+    }
+
+    @Test
     public void coordinates() throws SolrServerException, IOException {
         String id = "1";
 
@@ -154,15 +179,15 @@ public class ClusteringTest {
         SolrDocument document = response.getResults().get(0);
         assertEquals(document.get("id"), id);
 
-        NamedList<NamedList<?>> clusters = (NamedList<NamedList<?>>) response.getResponse().get("spatial-clustering");
+        NamedList<NamedList<?>> clusters = this.getClustering(response);
         assertEquals(1, clusters.size());
 
-        NamedList<?> pin = clusters.get("pin");
-        assertNotNull(pin);
+        NamedList<?> cluster = clusters.get("pin");
+        assertNotNull(cluster);
 
-        assertEquals(pin.get("reference"), id);
-        assertEquals(pin.get("longitude"), document.get("lon"));
-        assertEquals(pin.get("latitude"), document.get("lat"));
+        assertEquals(cluster.get("reference"), id);
+        assertEquals(cluster.get("longitude"), document.get("lon"));
+        assertEquals(cluster.get("latitude"), document.get("lat"));
     }
 
     @Test
@@ -184,7 +209,13 @@ public class ClusteringTest {
         }
     }
 
-    private NamedList<?> getClustering(QueryResponse response) {
-        return (NamedList<?>) response.getResponse().get("spatial-clustering");
+    @SuppressWarnings("unchecked")
+    private NamedList<NamedList<?>> getClustering(QueryResponse response) {
+        return (NamedList<NamedList<?>>) response.getResponse().get("spatial-clustering");
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, ?>> getClusteringCompact(QueryResponse response) {
+        return (List<Map<String, ?>>) response.getResponse().get("spatial-clustering");
     }
 }

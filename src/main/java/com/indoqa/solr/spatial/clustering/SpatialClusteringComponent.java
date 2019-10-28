@@ -31,13 +31,13 @@ import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.util.plugin.PluginInfoInitialized;
 
 import com.tomgibara.cluster.gvm.dbl.DblClusters;
-import com.tomgibara.cluster.gvm.dbl.DblResult;
 
 public class SpatialClusteringComponent extends SearchComponent implements PluginInfoInitialized {
 
     public static final String PARAMETER_SPATIALCLUSTERING = "spatial-clustering";
     public static final String PARAMETER_SIZE = PARAMETER_SPATIALCLUSTERING + ".size";
     public static final String PARAMETER_MIN_RESULT_COUNT = PARAMETER_SPATIALCLUSTERING + ".min-result-count";
+    public static final String PARAMETER_COMPACT_FORMAT = PARAMETER_SPATIALCLUSTERING + ".compact-format";
 
     private static final String PARAMETER_FIELD_NAME_ID = "fieldId";
     private static final String PARAMETER_FIELD_NAME_LON = "fieldLon";
@@ -47,9 +47,6 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
     private static final int DEFAULT_SIZE = 10;
     private static final int DEFAULT_MAX_SIZE = 1_000_000;
     private static final int MIN_SIZE = 1;
-
-    private static final String PIN_TYPE_SINGLE = "single";
-    private static final String PIN_TYPE_CLUSTER = "cluster";
 
     private String fieldNameId;
     private String fieldNameLon;
@@ -111,14 +108,6 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
         return result;
     }
 
-    private static String getType(int count) {
-        if (count == 1) {
-            return PIN_TYPE_SINGLE;
-        }
-
-        return PIN_TYPE_CLUSTER;
-    }
-
     private static boolean isEnabled(ResponseBuilder responseBuilder) {
         return responseBuilder.req.getParams().getBool(PARAMETER_SPATIALCLUSTERING, false);
     }
@@ -174,30 +163,16 @@ public class SpatialClusteringComponent extends SearchComponent implements Plugi
         }
 
         DblClusters<String> clusters = this.createClusters(responseBuilder, size);
-        NamedList<Object> spatialClusteringRoot = this.createClusterResult(clusters);
 
-        responseBuilder.rsp.add("spatial-clustering", spatialClusteringRoot);
-    }
+        Object result;
 
-    private NamedList<Object> createClusterResult(DblClusters<String> clusters) {
-        NamedList<Object> result = new NamedList<>();
+        if (responseBuilder.req.getParams().getBool(PARAMETER_COMPACT_FORMAT, false)) {
+            result = ResultFormatter.createCompactClusterResult(clusters);
+        } else {
+            result = ResultFormatter.createClusterResult(clusters);
 
-        for (DblResult<String> cluster : clusters.results()) {
-            NamedList<Object> clusterNode = new NamedList<>();
-
-            clusterNode.add("type", getType(cluster.getCount()));
-            clusterNode.add("size", cluster.getCount());
-            clusterNode.add("longitude", cluster.getCoords()[0]);
-            clusterNode.add("latitude", cluster.getCoords()[1]);
-
-            if (cluster.getCount() == 1) {
-                clusterNode.add("reference", cluster.getKey());
-            }
-
-            result.add("pin", clusterNode);
         }
-
-        return result;
+        responseBuilder.rsp.add("spatial-clustering", result);
     }
 
     private DblClusters<String> createClusters(ResponseBuilder responseBuilder, int size) throws IOException {
