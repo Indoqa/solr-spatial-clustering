@@ -34,7 +34,7 @@
   <name>Solr Spatial Cluster Plugin</name>
 
   <properties>
-    <solr-version>7.5.0</solr-version>
+    <solr-version>8.4.0</solr-version>
 
     <junit-version>4.10</junit-version>
   </properties>
