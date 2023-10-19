@@ -55,7 +55,9 @@ pipeline {
 
       steps {
         withSonarQubeEnv('sonar') { 
-          sh 'mvn -Ptest-coverage,indoqa-release sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.password= '
+           withEnv(["JAVA_HOME=${tool 'Sonar_JDK'}", "PATH=${tool 'Sonar_JDK'}/bin:${env.PATH}"]) { 
+             sh 'mvn -Ptest-coverage,indoqa-release sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.password= '
+           }
         }
       }
     }
